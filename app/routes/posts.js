@@ -9,7 +9,7 @@ router.get('', (req, res, next) => {
   Post.find()
     .then((documents) => {
       res.status(200).json({
-        message: 'fecth completed successfully',
+        message: 'fetch completed successfully',
         posts: documents
       });
     });
