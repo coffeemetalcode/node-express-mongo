@@ -19,8 +19,12 @@ mongoose.connect(
   { useNewUrlParser: true, useUnifiedTopology: true }
 ).then(() => {
   console.log('database connection initiated');
-}).catch(() => {
+}).catch((e) => {
   console.log('databse connection failed');
+  console.log('error message:', e);
+  console.log(
+    `Did you forget to run curl ifconfig.me and update your network access list with your machine's current IP?`
+  );
 });
 
 app.use(bodyParser.json());
