@@ -1,8 +1,32 @@
 const express = require('express');
+const multer = require('multer');
 
 const Post = require('../models/post');
 
 const router = express.Router();
+
+const MIME_TYPE_MAP = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg'
+};
+
+const storage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    const isValid = MIME_TYPE_MAP[file.mimetype];
+    let error = new Error('Invalid file type');
+    if (isValid) {
+      error = null;
+    }
+    callback(error, 'images/');
+  },
+  filename: (req, file, callback) => {
+    const name = file.originalname.toLowerCase().split(' ').join('-');
+    const ext = MIME_TYPE_MAP[file.mimetype];
+    callback(null, `${name}-${Date.now()}.${ext}`);
+  },
+  acl: 'public-read'
+});
 
 /* GET posts --> Get all posts */
 router.get('', (req, res, next) => {
@@ -28,17 +52,24 @@ router.get('/:id', (req, res, next) => {
 });
 
 /* POST post --> Add a new post */
-router.post('', (req, res, next) => {
+router.post('', multer({storage: storage}).single('image'), (req, res, next) => {
+  const url = `${req.protocol}://${req.get("host")}`;
   const post = new Post({
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
+    imageUrl: `${url}/images/${req.file.filename}`
   });
   console.log('new post: ', post);
   post.save()
     .then((result) => {
       res.status(201).json({
         message: 'new post created',
-        id: result._id
+        post: {
+          id: result._id,
+          title: result.title,
+          content: result.content,
+          imageUrl: result.imageUrl
+        }
       });
     });
     
